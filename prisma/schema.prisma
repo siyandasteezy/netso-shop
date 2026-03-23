@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  slug     String    @unique
+  products Product[]
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  slug        String      @unique
+  description String      @default("")
+  price       Float       @default(200)
+  stock       Int         @default(10)
+  categoryId  String
+  category    Category    @relation(fields: [categoryId], references: [id])
+  images      ProductImage[]
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  featured    Boolean     @default(false)
+  active      Boolean     @default(true)
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  url       String
+  alt       String  @default("")
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  order     Int     @default(0)
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  date        DateTime
+  endDate     DateTime?
+  venue       String
+  city        String   @default("Johannesburg")
+  imageUrl    String   @default("")
+  ticketPrice Float
+  totalTickets Int
+  soldTickets  Int     @default(0)
+  active      Boolean  @default(true)
+  tickets     Ticket[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Ticket {
+  id         String  @id @default(cuid())
+  eventId    String
+  event      Event   @relation(fields: [eventId], references: [id])
+  orderId    String?
+  order      Order?  @relation(fields: [orderId], references: [id])
+  buyerName  String
+  buyerEmail String
+  quantity   Int     @default(1)
+  totalPrice Float
+  ticketCode String  @unique
+  createdAt  DateTime @default(now())
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  customerName    String
+  customerEmail   String
+  customerPhone   String      @default("")
+  address         String      @default("")
+  city            String      @default("")
+  province        String      @default("")
+  postalCode      String      @default("")
+  subtotal        Float       @default(0)
+  vatRate         Float       @default(15)
+  vatAmount       Float       @default(0)
+  deliveryFee     Float       @default(0)
+  total           Float
+  status          String      @default("pending")
+  paymentMethod   String      @default("payfast")
+  paymentStatus   String      @default("pending")
+  payfastPaymentId String     @default("")
+  deliveryQuoteId String      @default("")
+  waybillNumber   String      @default("")
+  trackingNumber  String      @default("")
+  items           OrderItem[]
+  tickets         Ticket[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+  size      String  @default("")
+}
