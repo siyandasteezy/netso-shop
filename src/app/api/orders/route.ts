@@ -4,7 +4,24 @@ import { auth } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import { buildOrderTotals } from "@/lib/utils";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const email = searchParams.get("email");
+
+  // Public email-based order lookup (for mobile app)
+  if (email) {
+    const orders = await db.order.findMany({
+      where: { customerEmail: email },
+      include: {
+        items: { include: { product: { include: { images: { take: 1 } } } } },
+        tickets: { include: { event: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json(orders);
+  }
+
+  // Admin: full order list (requires session)
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
