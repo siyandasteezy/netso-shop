@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
+// /web forces HTTP-only mode — works in serverless (Netlify) and local dev
+import { PrismaLibSql } from "@prisma/adapter-libsql/web";
 import path from "path";
 
 function createPrismaClient() {

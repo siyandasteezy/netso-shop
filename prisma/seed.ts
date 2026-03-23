@@ -1,11 +1,17 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaLibSql } from "@prisma/adapter-libsql/web";
 import bcrypt from "bcryptjs";
 import { readdirSync } from "fs";
 import { join, resolve } from "path";
 
-const dbPath = resolve(__dirname, "dev.db");
-const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` });
+const url =
+  process.env.TURSO_DATABASE_URL ||
+  `file:${resolve(process.cwd(), "prisma", "dev.db")}`;
+const adapter = new PrismaLibSql({
+  url,
+  ...(process.env.TURSO_AUTH_TOKEN ? { authToken: process.env.TURSO_AUTH_TOKEN } : {}),
+});
 const db = new PrismaClient({ adapter } as ConstructorParameters<typeof PrismaClient>[0]);
 
 const CATEGORIES = [
