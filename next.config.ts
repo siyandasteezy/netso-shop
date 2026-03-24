@@ -3,15 +3,24 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   images: {
-    // Allow local images from /public
     localPatterns: [{ pathname: "/images/**" }, { pathname: "/logo*" }],
   },
-  // libsql requires native bindings — exclude from Webpack/Turbopack bundling
   serverExternalPackages: ["@libsql/client"],
   turbopack: {
-    // Fix: parent dir has a stray package-lock.json that confuses Turbopack's
-    // workspace root detection, causing it to look for tailwindcss in the wrong place.
     root: path.resolve(__dirname),
+  },
+  async headers() {
+    return [
+      {
+        // Allow the mobile app (and any client) to call all API routes
+        source: "/api/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "GET,POST,PUT,PATCH,DELETE,OPTIONS" },
+          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
+        ],
+      },
+    ];
   },
 };
 
